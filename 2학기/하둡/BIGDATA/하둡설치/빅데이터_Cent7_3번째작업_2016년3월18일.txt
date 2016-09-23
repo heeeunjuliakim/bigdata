@@ -1,0 +1,933 @@
+
+
+
+-----------------------------------------------------------------------------------
+
+리눅스 CentOS 7.X 설치 
+
++ RStudio
+
++ Python & iPython Notebook(Jupyter)
+
++ Hadoop Ecosystem
+
++ Shark(Spark 0.8) & Spark 1.6
+
+-----------------------------------------------------------------------------------
+
+1.리눅스 설치
+
+# 1.1 리눅스 DVD 이미지 다운로드
+
+# 웹브라우저
+
+http://ftp.daum.net/centos/7/isos/x86_64/
+
+# 다음 파일을 클릭하여 다운로드 받는다.
+
+CentOS-7-x86_64-DVD-1503.iso	 [3.9G, 4,136,960KB] 
+
+ 
+# 1.2 Virtual Box 설치
+
+[주의] 환경-입력-호스트키 설정 : Ctrl+Alt
+
+# 1.3 가상머신 [새로 만들기]
+
+[주의] 환경-네트워크-어댑터2에서 [사용] 선택 + [호스트 전용 어댑터] 선택
+
+디스크 만들기 : VDI -> 고정 8G
+
+환경-저장소에서 [CD/DVD추가] 다운로드 받은 CentOS-7.iso 파일을 선택한다.
+
+
+# 1.4 리눅스 설치
+
+- 네트워크에서 eth0와 eth1을 자동으로 시작하도록 설정
+
+- 최소 버전으로 설치
+
+- 개발 도구(Development tools)를 추가로 선택
+
+- KDUMP 비활성화(가상머신은 지원하지 않음)
+
+- root 비밀번호 : hadoop
+
+
+# 1.5 레포지토리를 Daum으로 변경하기
+
+vi /etc/yum.repos.d/Daum.repo
+
+[base]
+name=CentOS-$releasever - Base
+baseurl=http://ftp.daum.net/centos/$releasever/os/$basearch/
+gpgcheck=0 
+
+[updates]
+name=CentOS-$releasever - Updates
+baseurl=http://ftp.daum.net/centos/$releasever/updates/$basearch/
+gpgcheck=0
+
+
+
+# 1.6 네트워크 
+
+192.168.56.101이나 102로 잡히게 해야 함
+
+$ echo 'nameserver 8.8.8.8' > /etc/resolv.conf
+$ echo 'nameserver 168.126.63.1' >> /etc/resolv.conf
+
+$ ping -c 5 www.google.com
+
+# 최신 업데이트
+
+$ yum -y update
+
+2.파이썬 설치
+
+# 2.1 yum으로 파이썬 관련 모듈 설치
+
+
+$ yum -y install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel
+
+$ yum -y install python-devel python-nose python-setuptools gcc gcc-gfortran gcc-c++ 
+
+$ yum -y install atlas atlas.x86_64 blas.x86_64 lapack.x86_64 atlas-devel lapack-devel blas-devel
+
+$ yum -y install numpy  python-matplotlib  scipy  sympy
+
+
+# 2.2 pip로 pandas, ipython, ipython_notebook 설치
+
+$ yum -y install  wget 
+
+$ wget  www.db21.co.kr/big/ez_setup.py
+
+$ python  ez_setup.py
+ 
+$ easy_install  pip
+
+$ pip install  pandas
+
+$ pip install  ipython[all]
+
+
+3. Jupyter 서버 자동 실햄
+
+# 3.1 비밀번호 설정( 1234 )
+
+[주의사항] 방화벽을 내려주어야 한다.
+CentOS 7부터 iptables를 쓰지 않고 firewalld를 사용함
+iptables는 설치되어 있지 않으므로 아래 3줄을 실행할 필요가 없음
+
+systemctl status firewalld
+
+systemctl stop firewalld
+
+systemctl disable firewalld
+
+systemctl status iptables
+
+-- systemctl stop iptables
+
+-- systemctl disable iptables
+
+[주의사항] 이제부터는 big이라는 일반계정으로 실행한다.
+
+$ adduser big
+
+$ passwd big
+
+# 비밀번호는 1234
+
+$ su - big
+
+$ jupyter notebook --generate-config
+
+Writing default config to: /home/big/.jupyter/jupyter_notebook_config.py
+
+$ ipython 
+
+In [1]: from IPython.lib import passwd
+
+In [2]: passwd( )
+Enter password:
+Verify password:
+Out[2]: 'sha1:5434bec808f4:6258ce541e35b1dd44c0b32d8d201347eed7ceb7'
+
+In [3]: quit()
+Do you really want to exit ([y]/n)? y
+
+[NOTE] Out[2] : 다음에 나오는 문자열을 복사해 둔다.
+
+ 'sha1:5434bec808f4:6258ce541e35b1dd44c0b32d8d201347eed7ceb7'
+
+# 3.2 서버 프로파일 작성
+
+$ vi .jupyter/jupyter_notebook_config.py
+
+echo "c = get_config()" >> .jupyter/jupyter_notebook_config.py
+echo "c.NotebookApp.ip = '*' " >> .jupyter/jupyter_notebook_config.py
+echo "c.NotebookApp.open_browser = False " >> .jupyter/jupyter_notebook_config.py
+echo "c.NotebookApp.password = u'sha1:5434bec808f4:6258ce541e35b1dd44c0b32d8d201347eed7ceb7' " >> .jupyter/jupyter_notebook_config.py
+
+$ cat .jupyter/jupyter_notebook_config.py
+
+# 3.3 테스트 하기
+
+$ jupyter notebook --no-browser
+
+
+노트북(PC)의 웹브라우저(크롬)을 열고
+
+http://192.168.56.101:8888/
+
+jupyter 웹페이지가 열리면서 비밀번호(1234)를 묻는다...
+
+Python2 문서를 새로 만들고 다음의 코드를 실행한다.
+
+# from pylab import *
+%pylab  inline
+X = np.linspace(-np.pi, np.pi, 256, endpoint=True)
+C,S = np.cos(X), np.sin(X)
+plot(X,C)
+plot(X,S)
+show( )
+
+리눅스 Shell에서 CTRL+C로 jupyter 서버를 중단시킨다.
+
+
+# 3.4 시작 스크립트 만들기
+
+$ echo '#!/bin/bash'  > jupyter_start.sh
+ 
+$ echo 'jupyter notebook  --no-browser &' >> jupyter_start.sh
+
+$ cat jupyter_start.sh
+
+$ chmod 755 jupyter_start.sh
+
+# 3.5 부팅시 자동으로 jupyter가 실행되도록 하기
+
+[주의사항] 이건 root 계정으로 반드시 해야 함.
+
+$ su -
+
+$ echo 'su - big -c /home/big/jupyter_start.sh' >> /etc/rc.d/rc.local
+
+$ cat /etc/rc.d/rc.local
+
+$ chmod  +x  /etc/rc.d/rc.local
+
+$ shutdown  -r  now
+
+# 부팅 후 확인 
+
+노트북(PC)의 웹브라우저(크롬)을 열고
+http://192.168.56.101:8888/
+
+
+4. R Studio 설치
+
+[NOTE] root 계정으로 설치합니다.
+
+# 4.1 Epel을 먼저 설치.
+
+$ wget www.db21.co.kr/big/epel-release-7-5.noarch.rpm
+
+$ rpm  -ivh  epel-release-7-5.noarch.rpm
+
+
+# 4.2 일반 R을 설치합니다.
+
+$ yum -y install R
+
+# 4.3 R Studio Server를 설치합니다.
+
+$ wget www.db21.co.kr/big/rstudio-server-0.98.501-x86_64.rpm
+
+$ yum install --nogpgcheck rstudio-server-0.98.501-x86_64.rpm
+
+systemctl status rstudio-server
+
+systemctl enable rstudio-server
+
+
+## 이제 가상 머신을 재부팅합니다.
+
+$ shutdown  -r  now
+
+
+가상머신이 실행되면... 이제부터는 웹으로 접근하여
+
+Python과 RStudio을 사용할 수 있습니다.
+
+
+
+# RStudio
+
+http://192.168.56.101:8787/
+
+- 아이디 : big  비밀번호 : 1234
+
+# iPython Jupyter
+
+http://192.168.56.101:8888/
+
+- 비밀번호 : 1234
+
+[주의사항] IP는  192.168.56.101 또는 192.168.56.102
+
+
+* 수고하셨습니다. *
+
+---------------------------------------------------------------------------------
+
+
+1.OS 설정
+
+# 방화벽(앞에서 중지시켰기 때문에 필요 없음, 하둡만 깔 경우 실행할 것)
+
+systemctl status firewalld
+
+systemctl stop firewalld
+
+systemctl disable firewalld
+
+
+# 호스트 설정
+
+ip a
+
+cat /etc/hosts
+
+echo '10.0.2.15 namenode secondnode datanode1' >> /etc/hosts
+
+cat /etc/hosts
+
+ping namenode
+
+# JAVA 설치
+
+[NOTE] 하둡계정은 별도의 JDK 버전을 사용함 
+
+rpm -qa | grep 'jdk'
+
+wget  www.db21.co.kr/big/jdk-7u55-linux-x64.rpm 
+
+rpm  -ivh  jdk-7u55-linux-x64.rpm 
+
+ln  -s  /usr/java/jdk1.7.0_55  /usr/local/java
+
+# 하둡계정 추가
+
+adduser hadoop
+
+# SSH 처음 접속시 질문안받기
+
+echo 'StrictHostKeyChecking no' >> /etc/ssh/ssh_config
+
+ 
+
+2.하둡 계정
+
+# 환경 설정
+
+su - hadoop
+whoami
+
+wget  www.db21.co.kr/big/bashrc1.txt
+
+cp bashrc1.txt  .bashrc
+
+source  .bashrc
+
+cat .bashrc 
+
+env
+
+# JDK 버전 확인
+
+javac -version
+
+jps
+
+
+
+# .bashrc
+
+if [ -f /etc/bashrc ]; then
+        . /etc/bashrc
+fi
+
+#-----------------------------------------------
+# HADOOP Config Start
+
+pathmunge () {
+    case ":${PATH}:" in
+        *:"$1":*)
+            ;;
+        *)
+            if [ "$2" = "after" ] ; then
+                PATH=$PATH:$1
+            else
+                PATH=$1:$PATH
+            fi
+    esac
+}
+
+export JAVA_HOME=/usr/local/java
+export CLASSPATH=/usr/local/java/jre/lib/*
+pathmunge /usr/local/java before
+pathmunge /usr/local/java/bin before
+
+export BASEHOME=/home/hadoop
+
+export HADOOP_PREFIX=$BASEHOME/hadoop
+export HADOOP_HOME=$BASEHOME/hadoop
+export PIG_HOME=$BASEHOME/pig
+export PIG_CLASSPATH=$BASEHOME/hadoop/conf
+export HIVE_HOME=$BASEHOME/hive
+export HIVE_CONF_DIR=$BASEHOME/hive/conf
+
+pathmunge $BASEHOME/shark/bin
+pathmunge $BASEHOME/pig/bin
+pathmunge $BASEHOME/hive/bin
+pathmunge $BASEHOME/sqoop/bin
+pathmunge $BASEHOME/hadoop/bin
+
+# HADOOP Config End
+#-----------------------------------------------
+
+# SSH 설정
+
+[NOTE] 비밀번호를 물어보면 그냥 Enter를 3번.
+ssh localhost
+
+ls -al
+
+ls -al  .ssh
+
+ssh-keygen   -t    dsa    -P    ''    -f    ~/.ssh/id_dsa
+
+cat   ~/.ssh/id_dsa.pub   >>  ~/.ssh/authorized_keys
+
+chmod   400   ~/.ssh/authorized_keys
+
+ls -al  .ssh
+
+ssh localhost
+
+exit
+
+ssh namenode
+
+exit
+
+ssh secondnode
+
+exit
+
+ssh datanode1
+
+exit
+
+w
+
+# 하둡 설치
+
+wget www.db21.co.kr/big/hadoop-1.0.3.tar.gz
+
+tar xvzf hadoop-1.0.3.tar.gz 
+
+ln -s  /home/hadoop/hadoop-1.0.3  /home/hadoop/hadoop 
+
+wget  www.db21.co.kr/big/hadoop_conf.tgz
+
+tar xvzf  hadoop_conf.tgz 
+
+grep '900' hadoop_conf/*
+
+cat  hadoop_conf/masters
+
+cat  hadoop_conf/slaves
+
+cp hadoop_conf/*  hadoop/conf/
+
+
+# HDFS 포맷
+
+hadoop/bin/hadoop  namenode  -format
+
+ls -R hadoop/tmp
+
+# 하둡 서비스 시작/중단
+
+
+hadoop/bin/start-all.sh
+
+jps
+
+hadoop/bin/stop-all.sh
+
+jps
+
+hadoop/bin/start-dfs.sh
+
+jps
+
+hadoop/bin/start-mapred.sh
+ 
+jps
+
+hadoop/bin/stop-mapred.sh
+
+jps
+
+hadoop/bin/stop-dfs.sh
+
+jps
+
+
+# HDFS 사용하기
+
+hadoop/bin/start-all.sh
+
+jps
+
+hadoop fs -lsr /
+
+hadoop fs -mkdir /tmp
+
+hadoop fs -chmod 777 /tmp
+
+hadoop fs -mkdir /user
+
+hadoop fs -mkdir /user/hadoop
+
+hadoop fs -lsr /
+
+
+
+3.Pig 설치
+
+
+wget www.db21.co.kr/big/pig-0.10.0.tar.gz 
+
+tar xvzf  pig-0.10.0.tar.gz 
+
+ln -s  pig-0.10.0  pig 
+
+echo 'aaa,100' > pig.txt
+echo 'bbb,200' >> pig.txt
+echo 'ccc,300' >> pig.txt
+echo 'aaa,400' >> pig.txt
+
+hadoop fs  -put  pig.txt  .
+
+hadoop fs  -lsr  .
+
+hadoop fs  -cat   pig.txt
+
+pig
+
+grunt> ls
+grunt> cat pig.txt
+grunt> k2 = load 'pig.txt' using PigStorage(',') 
+                  as ( str:chararray, price:int ); 
+grunt> k4 = GROUP k2 BY $0; 
+grunt> k6 = foreach k4 generate k2.str, SUM(k2.price); 
+grunt> k8 = foreach k4 generate group, SUM(k2.price); 
+grunt> dump k8; 
+grunt> illustrate k8; 
+grunt> quit
+
+
+4.APM 설치(root계정)
+
+whoami
+su -
+whoami
+
+wget www.db21.co.kr/big/mysql-community-release-el7-5.noarch.rpm
+
+yum -y install mysql-community-release-el7-5.noarch.rpm
+ 
+yum -y install mysql-community-server
+ 
+systemctl start mysqld
+ 
+systemctl enable mysqld
+
+systemctl status mysqld
+ 
+yum -y install  httpd
+yum -y install  php php-gd php-mysql php-pear
+
+
+mysqladmin create hivedb 
+
+mysqlshow 
+
+mysql mysql
+
+mysql> grant all privileges on hivedb.* to hiveuser@localhost identified by 'hivepw';
+mysql> grant all privileges on hivedb.* to hiveuser@'%' identified by 'hivepw';
+mysql> flush privileges;
+mysql> quit;
+
+mysqlshow hivedb -uhiveuser -phivepw
+
+
+5.Hive 설치
+
+su - hadoop
+whoami
+
+mysqlshow hivedb -uhiveuser -phivepw
+
+wget www.db21.co.kr/big/shark-hive.tgz 
+
+tar xvfz    shark-hive.tgz
+
+ln -s  shark-0.8.0  shark
+
+ln -s  hive-0.9.0  hive
+
+cd hive/conf 
+
+wget -O hive-site.xml  www.db21.co.kr/big/hive-site.xml 
+
+ls
+
+grep 'namenode' *
+grep 'hiveuser' *
+grep 'hivepw' *
+
+cd
+
+mysqlshow hivedb -uhiveuser -phivepw 
+
+mysql hivedb -uhiveuser -phivepw < hive/scripts/metastore/upgrade/mysql/hive-schema-0.9.0.mysql.sql 
+
+mysqlshow hivedb -uhiveuser -phivepw 
+
+wget  www.db21.co.kr/big/mysql-connector-java-5.1.23-bin.jar
+
+rm -f hive/lib/mysql-connector-java-5.1.11.jar
+
+cp  mysql*.jar  hive/lib/
+
+hive
+
+hive> show tables;
+
+hive> create table pig
+      ( str string, price int )
+      ROW FORMAT DELIMITED FIELDS TERMINATED BY ',';
+
+hive> show tables;
+
+hive> load data local inpath 'pig.txt' into table pig;
+
+hive> select * from pig;
+
+hive> quit;
+
+
+6.Sqoop 설치
+
+wget  www.db21.co.kr/big/sqoop-1.4.4.bin__hadoop-1.0.0.tar.gz
+ 
+tar xvzf sqoop-1.4.4.bin__hadoop-1.0.0.tar.gz 
+
+ln -s sqoop-1.4.4.bin__hadoop-1.0.0  sqoop
+
+cp  mysql*.jar  sqoop/lib/  
+
+sqoop import --connect jdbc:mysql://localhost/hivedb -username hiveuser --password hivepw --table TBLS -m 1 --hive-import
+
+hive
+
+hive> show tables;
+
+hive> select * from tbls;
+
+hive> quit;
+
+
+7.Spark 설치
+
+wget www.db21.co.kr/big/scala-2.9.3.tgz  
+
+tar xvfz   scala-2.9.3.tgz 
+
+ln -s  scala-2.9.3  scala 
+
+wget www.db21.co.kr/big/spark-0.8.0.tgz  
+
+tar xvfz    spark-0.8.0.tgz 
+
+ln -s  spark-0.8.0  spark 
+
+cat spark/conf/slaves  
+
+localhost
+
+cat spark/conf/spark-env.sh
+
+export SCALA_HOME=/home/hadoop/scala
+export SPARK_MASTER_IP=localhost
+export SPARK_MASTER_PORT=8081
+export SPARK_MASTER_WEBUI_PORT=58081
+export SPARK_WORKER_PORT=8082
+export SPARK_WORKER_WEBUI_PORT=58082
+export SPARK_WORKER_CORES=4
+export SPARK_WORKER_MEMORY=200m
+
+cat shark/conf/shark-env.sh
+
+export SHARK_MASTER_MEM=100m
+export SPARK_MEM=200m
+export SPARK_HOME="/home/hadoop/spark"
+export MASTER="spark://localhost:8081"
+export SCALA_HOME="/home/hadoop/scala"
+export HIVE_HOME="/home/hadoop/hive"
+export HIVE_CONF_DIR="/home/hadoop/hive/conf"
+export HADOOP_HOME="/home/hadoop/hadoop"
+SPARK_JAVA_OPTS="-Dspark.local.dir=/home/hadoop/spark/data "
+SPARK_JAVA_OPTS+="-Dspark.kryoserializer.buffer.mb=5 "
+export SPARK_JAVA_OPTS
+
+spark/bin/start-all.sh
+
+jps
+
+shark/bin/shark --service sharkserver 8083 &
+
+jps
+
+
+shark/bin/shark -h localhost -p 8083 
+
+shark> show tables;
+
+shark> create table shark
+      ( str string, price int )
+      ROW FORMAT DELIMITED FIELDS TERMINATED BY ',';
+
+shark> show tables;
+
+shark> load data local inpath 'pig.txt' into table shark;
+
+shark> select * from shark;
+
+shark> select str,sum(price) from shark group by str;
+
+shark> quit;
+
+8.Zookeeper 설치
+
+wget www.db21.co.kr/big/zookeeper-3.4.6.tar.gz
+
+tar xvzf  zookeeper-3.4.6.tar.gz
+
+ln  -s  zookeeper-3.4.6   zookeeper
+
+mkdir    zookeeper/datadir
+
+echo '1' > zookeeper/datadir/myid
+
+cat zookeeper/datadir/myid
+
+
+echo 'tickTime=2000' > zookeeper/conf/zoo.cfg
+echo 'initLimit=10' >> zookeeper/conf/zoo.cfg
+echo 'syncLimit=5' >> zookeeper/conf/zoo.cfg
+echo 'dataDir=/home/hadoop/zookeeper/datadir' >> zookeeper/conf/zoo.cfg
+echo 'clientPort=2181' >> zookeeper/conf/zoo.cfg
+echo 'server.1=localhost:2888:3888' >> zookeeper/conf/zoo.cfg
+
+cat zookeeper/conf/zoo.cfg
+
+zookeeper/bin/zkServer.sh    start
+
+jps
+
+zookeeper/bin/zkCli.sh -server 127.0.0.1:2181
+ 
+[zk] help
+[zk] ls /
+[zk] get /zookeeper
+[zk] quit
+
+
+-------------------------------------------------------
+
+
+# 빅데이터컴퓨팅기술 소스
+
+wget www.db21.co.kr/big/source.tgz
+
+tar xvzf source.tgz
+
+
+-------------------------------------------------------
+
+
+Spark 1.6을 이용한 MLlib 실습 환경
+
+1.root 작업
+[NOTE] 하둡 에코시스템 데몬이 너무 많아서 메모리가 부족할 수 있습니다.
+       머신을 다시 부팅해주세요.
+
+whoami
+
+mkdir /data
+
+chown hadoop /data
+
+echo 3 > /proc/sys/vm/drop_caches
+
+2.스팍 설치
+
+su - hadoop
+whoami
+
+cd /data
+
+wget www.db21.co.kr/big/spark-1.6.0-bin-hadoop1.tgz
+
+tar xvzf  spark-1.6.0-bin-hadoop1.tgz
+
+mv  spark-1.6.0-bin-hadoop1  spark-1.6.0
+
+cd spark-1.6.0/conf
+
+echo 'datanode1' > slaves
+
+cp spark-env.sh.template spark-env.sh
+cp spark-defaults.conf.template spark-defaults.conf
+cp log4j.properties.template log4j.properties
+
+ls
+
+export SPARK_HOME=/data/spark-1.6.0 
+export SPARK_CONF_DIR=$SPARK_HOME/conf
+
+echo 'export SPARK_MASTER_IP=namenode' >> spark-env.sh
+echo 'export SPARK_WORKER_CORES=2' >> spark-env.sh
+echo 'export SPARK_WORKER_MEMORY=600m' >> spark-env.sh
+echo 'export SPARK_DRIVER_MEMORY=500m' >> spark-env.sh
+echo 'export SPARK_EXECUTOR_MEMORY=500m' >> spark-env.sh
+echo 'export SPARK_WORKER_DIR=/data/spark-1.6.0/spark_data' >> spark-env.sh
+echo 'export SPARK_PID_DIR=/data/spark-1.6.0/spark_tmp' >> spark-env.sh
+
+vi log4j.properties
+
+#INFO를 WARN으로 변경
+log4j.rootCategory=WARN, console
+
+cat slaves
+
+cat spark-env.sh
+
+cat log4j.properties
+
+cd ../data/
+
+wget www.db21.co.kr/big/covtype.tgz
+
+tar xvzf covtype.tgz
+
+cd
+
+
+3.Test 하기
+
+# 로컬모드 테스트
+
+-  파이선으로
+
+export SPARK_HOME=/data/spark-1.6.0 
+export SPARK_CONF_DIR=$SPARK_HOME/conf
+
+cd $SPARK_HOME
+pwd
+
+bin/pyspark --master local[2]
+
+
+>>> lines = sc.textFile("README.md")  
+
+>>> lines.count()  
+95
+
+>>> lines.first() 
+u'# Apache Spark
+
+>>> pythonLines = lines.filter(lambda line: "Python" in line)
+
+>>> pythonLines.count()
+3
+
+>>> CTRL+D
+ 
+
+- 스칼라로
+
+bin/spark-shell
+
+
+scala> val x= sc.parallelize(Array("b", "a", "c"))
+scala> val y= x.map(z => (z,1))
+scala> println(x.collect().mkString(", "))
+scala> println(y.collect().mkString(", "))
+
+scala> val x1= sc.parallelize(Array("b", "a", "c"),2)
+scala> println(x1.collect().mkString(", "))
+
+scala> CTRL+D
+
+
+4.Spark 서비스 시작 및 분산모드
+
+export SPARK_HOME=/data/spark-1.6.0 
+export SPARK_CONF_DIR=$SPARK_HOME/conf
+
+cd $SPARK_HOME
+pwd
+whoami
+
+sbin/start-all.sh
+
+jps
+
+웹브라우저에서 http://192.168.56.101:8080/
+
+->  spark://namenode:7077
+
+
+
+bin/spark-shell --master spark://namenode:7077 
+ 
+
+scala> var scalastr = sc.textFile("file:///home/hadoop/pig.txt") 
+
+scala> scalastr.count()
+
+scala> scalastr.first()
+
+scala> println(scalastr.collect().mkString("\n"))
+
+scala> CTRL+D
+
+
+sbin/stop-all.sh
+
+jps
+
+
+-------------------------------------------------------
+
+

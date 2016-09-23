@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "# Data Preparation\n\nsetwd(\"d:/datamining\")\n\ntrain <- read.csv(\"pepTrainSet.csv\", stringsAsFactors=F)\ntrain <- subset(train, select=-c(id))\ntest <- read.csv(\"pepTestSet.csv\", stringsAsFactors=F)\nnewd <- read.csv(\"pepNewCustomers.csv\", stringsAsFactors=F)\n\nhead(train)\nhead(test)\nhead(newd)\n\ntrain$pep <- factor(train$pep)\ntest$pep <- factor(test$pep)\n\n\n# Modeling\n\ninstall.packages(\"caret\")  \ninstall.packages(\"ROCR\")\ninstall.packages(\"C50\")  #의사결정나무\ninstall.packages(\"e1071\")\n\nlibrary(caret)\nlibrary(ROCR)\nlibrary(C50)\nlibrary(e1071)\n\n#first candidate model : Decision Tree(C5.0)\nc5_options <- C5.0Control(winnow = FALSE, noGlobalPruning = FALSE)\nc5_model <- C5.0(pep ~ ., data=train, control=c5_options, rules=FALSE)   #pep\nsummary(c5_model)\nplot(c5_model)\nwindows()\n\n\n#second candidate model : Logistic Regression\nlm_model <- glm(pep ~ ., data=train, family = binomial)\nsummary(lm_model)\n\n\n#c5_model과 lm_model 두가지 모델을 만들었으니, 이제 어떤 모델이 더 적합한지 평가가 필요.\n\n# Evaluation\n\nhead(test)\n\ntest$c5_pred <- predict(c5_model, test, type=\"class\")\ntest$c5_pred_prob <- predict(c5_model, test, type=\"prob\")\nconfusionMatrix(test$c5_pred, test$pep)\n\ntest$lm_pred <- ifelse(predict(lm_model, test, type=\"response\") > 0.5, \"YES\", \"NO\")\ntest$lm_pred_prob <- predict(lm_model, test, type=\"response\")\nconfusionMatrix(test$lm_pred, test$pep)\n\nc5_pred <- prediction(test$c5_pred_prob[, \"YES\"], test$pep)\nc5_model.perf <- performance(c5_pred, \"tpr\", \"fpr\")\n\nlm_pred <- prediction(test$lm_pred_prob, test$pep)\nlm_model.perf <- performance(lm_pred, \"tpr\", \"fpr\")\n\nplot(c5_model.perf, col=\"red\")\nplot(lm_model.perf, col=\"blue\", add=T)\nlegend(0.7, 0.7, c(\"C5\",\"LM\"), cex=0.9, col=c(\"red\", \"blue\"), lty=1)  \n\n#### --> y=x 45도 그래프축을 기준으로, LM 보다 C5가 더 큰 면적을 가지고 있으므로, C5가 더 정확도가 높다고 볼 수 있다.\n\n\n# Deployment\n\nnewd$c5_pred <- predict(c5_model, newd, type=\"class\")\nnewd$c5_pred_prob <- predict(c5_model, newd, type=\"prob\")\ntarget <- subset(newd, c5_pred==\"YES\" & c5_pred_prob[ ,\"YES\"] > 0.8)\nwrite.csv(target[order(target$c5_pred_prob[,\"YES\"], decreasing=T), ], \"dm_target.csv\", row.names=FALSE)\n",
+    "created" : 1473485383878.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1188445658",
+    "id" : "2A03FECD",
+    "lastKnownWriteTime" : 1473487300,
+    "last_content_update" : 1473487300138,
+    "path" : "C:/Users/hehe2/Desktop/datamining/0910/demo.R",
+    "project_path" : "0910/demo.R",
+    "properties" : {
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

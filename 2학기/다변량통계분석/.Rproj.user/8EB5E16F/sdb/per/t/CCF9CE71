@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "\n### multivariate normal\n\ninstall.packages(\"MVA\")\nlibrary(MVA)\n\ndemo(\"Ch-MVA\")\n\nhypo\ndim(hypo)\n\nmeasure\ndim(measure)\ncov(measure[,1:3])  #공분산행렬(양적변수만 보기위해 ,1:3)\ncov(measure[measure$gender==\"male\",1:3])  #남자의 공분산\ncov(measure[measure$gender==\"female\",1:3]) #여자의 공분산\n\npairs(cor(measure[,1:3]))\n\n\nround(cor(USairpollution),3)\ncor.test(~SO2+temp, data=USairpollution) #SO2와 temp 두 변수의 상관계수가 유의한지.\n #Ho : P=0, H1 : P!=0) ; p-value=0.004624 --> 귀무가설 기각 --> P!=0 --> 두 변수간 상관관계가 있다고 말할 수 있다.\n\nsummary(USairpollution)\napply(USairpollution,2,sd)\n#각 변수의 단위가 다르기때문에, 비교가 어려움. 따라서 비교를 위해, 평균이 0으로 표준화를 시켜보자\nUSairpollution_S <- scale(USairpollution) #scale\nsummary(USairpollution_S) #모든 변수의 평균이 0이 됨.\napply(USairpollution_S, 2, sd) #각 변수의 표준편차를 2=열 기준으로 구하기\n\nplot(USairpollution)\nplot(USairpollution[,1],USairpollution[,2])  \nplot(USairpollution_S[,1],USairpollution_S[,2])\nround(cov(USairpollution_S),3)  #공분산을 계산했는데, ..음? 공분산matrix와 \n\nhead(USairpollution)\n#거리를 구할 때도 scale 이후 구하는게 나음.\nround(dist(USairpollution_S),3)\n\n\n\ninstall.packages(\"mvtnorm\")\nlibrary(mvtnorm)\n\ninstall.packages(\"rgl\")\nlibrary(rgl)\n\nx2=x1=seq(-4,4,0.1)\nx1=matrix(x1,length(x1),length(x1))\nx2=matrix(x2,length(x2),length(x2),byrow=T)\n\n\n# independent normal  #독립일경우\nf=dmvnorm(cbind(as.vector(x1),as.vector(x2)))\nf=matrix(f,dim(x1)[1],dim(x1)[1])\npersp3d(x1,x2,f,col=\"lightblue\",xlab=\"x1\",ylab=\"x2\")\n\nX=rmvnorm(500,c(0,0),matrix(c(1,0,0,1),2,2))\nplot(X[,1],X[,2],xlim=c(-4,4),ylim=c(-4,4),xlab=\"x1\",ylab=\"x2\")\n\n\n# correlated normal\nf=dmvnorm(cbind(as.vector(x1),as.vector(x2)),c(0,0),matrix(c(1,0.5,0.5,1),2,2))\nf=matrix(f,dim(x1)[1],dim(x1)[1])\npersp3d(x1,x2,f,col=\"lightblue\",xlab=\"x1\",ylab=\"x2\")\n\nX=rmvnorm(500,c(0,0),matrix(c(1,0.5,0.5,1),2,2))\nplot(X[,1],X[,2],xlim=c(-4,4),ylim=c(-4,4),xlab=\"x1\",ylab=\"x2\")\n\n\n### qq plot\nx=seq(-4,4,0.01)\n\nq=seq(0.1,0.9,0.1)\nplot(x,dnorm(x),type='l',lwd=1.5,ylab=\"f(x)\",xaxt=\"n\")\nfor (i in 1:length(q)){\n  lines(c(1,1)*qnorm(q[i]),c(-0.1,dnorm(qnorm(q[i]))))\n}\n\naxis(1,at=qnorm(q),labels=parse(text=paste(\"q[\",q,\"]\",sep=\"\")),cex.axis=0.8)\n",
+    "created" : 1472860569912.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3212650057",
+    "id" : "CCF9CE71",
+    "lastKnownWriteTime" : 1472866520,
+    "last_content_update" : 1472866520344,
+    "path" : "C:/Users/hehe2/Desktop/다변량통계분석/lecture1.R",
+    "project_path" : "lecture1.R",
+    "properties" : {
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
