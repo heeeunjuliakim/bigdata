@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "install.packages(\"dplyr\")\nlibrary(dplyr)\n\nexam <- read.csv(\"exam1.csv\")\nhead(exam1)\nexam1 <- exam[,-5]\n\n# SELECT 선택 #\nfilter(exam1, Exam2>=1 & Quiz<3.9)\nfilter(exam1, Exam2>=1, Quiz<3.9)\nfilter(exam1, Exam1>mean(exam1$Exam1) & Exam2>mean(exam1$Exam2))\n\n# APPEND 추가 #\napp <- c(6,3.5,1.5,3.5)\nrbind(exam1, app)  #ID 6의 data rbind함수로 추가\n\napp2 <- c(6,1)\nrbind(exam1, app2)\n\n# SORT 정렬 #\narrange(exam1, Quiz     )  #arrange default값 오름차순\narrange(exam1, desc(Quiz)) #내림차순\n\n #Quiz와 Exam1 순서로 오름차순으로 정렬한다면???\narrange(exam1, (Quiz&Exam1)) #Quiz와 Exam1 순서로 오름차순 ???\n\n# SAMPLE #\nsample_n(exam1, 3)      #데이터에서 3개의 샘플을 무작위로 추출하라\nsample_frac(exam1, 0.4) #데이터에서 전체의 40%의 샘플을 추출하라 \n\nexam1[as.logical((1:nrow(exam1))%%2),]    #a%%b : a를 b로 나눈 나머지값\n# (1:nrow(exam1))%%2 = 1,0,1,0,1\n# as.logical((1:nrow(exam1))%%2 = T,F,T,F,T)\n# exam1[as.logical((1:nrow(exam1))%%2),] = T의 값만 출력 \n# 1,3,5만 나오게 된다 (1-in-2 sampling)\n\n\n# AGGREGATE #\nexam3 <- read.csv(\"exam1.csv\")\n\nby_gender <- group_by(exam3, Gender)\nsummarise(by_gender, exam1=mean(Exam1), quiz=median(Quiz))\n\nexam3 %>%\n  group_by(Gender) %>%\n  summarise_each(funs(min, max), Exam1, Exam2, Quiz)\n\n# DISTINCT #\nfilter(exam1, !duplicated(Quiz))\n\ndistinct(exam1, Quiz)  #return unique values\n\n# DERIVE 끌어내다. 파생 # \nexam1 <- mutate(exam1, ExamSum=Exam1+Exam2, ExamMean=ExamSum/2)\n\n# Filter #\nselect(exam1, ID:Exam2)  #Column명 ID ~ Exam2 까지의 값을 뽑아라\nexam1 <- select(exam1, -ExamSum, -ExamMean) #Column 명ExamSum, ExamMean의 값을 빼라\nrename(exam1, id=ID, quiz=Quiz, ex1=Exam1, ex2=Exam2)\n\n# Field Reorder #\nselect(exam1, ID, Quiz, Exam1, Exam2) #결과값을 원하는 순서대로 뽑기\n\n# Filler #\nexam1$Extra <- c(1,1,NA,NA,2)  #exam1 데이터 마지막 열에 Extra 내용을 추가해라\nexam1$Extra[is.na(exam1$Extra)] <- 0 #[is.na()] NA 결측값 0으로 변경\n\n# MERGE #\n\n\n#--------------------------------------------------------\n\n\n\nExercises\ncs <- read.table(\"dataCustomers.tab\", sep=\"\\t\", header=T, stringsAsFactors = F)\ntr <- read.table(\"dataTransactions.tab\", sep=\"\\t\", header=T, stringsAsFactors = F)\n\n\nfilter(cs, age>=50&age<=59&gender==\"du\"&marriage==\"기혼\" \n       \n\n#3)       \ngroup_by(cs, gender) %>%\n  summarise(age=mean(age))\n       \n#4)\ndistinct(cs, residence)\n\n\n#5)\nmg <- merge(cs, tr)\nhead(mg)\n\nmg %<%\n  group_by(gender) %>%\n  summarise_each(funs(min, median, max), amount)  #?\n\n#6)\ngroup_by(tr, custid) %>%\n  summarise(amount=sum(amount)) %>%\n  arrange(desc(amount)) %>%\n  head(10)\n\n\n\n",
+    "created" : 1474692408035.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1206254137",
+    "id" : "4B67E32",
+    "lastKnownWriteTime" : 1474729486,
+    "last_content_update" : 1474729486210,
+    "path" : "~/KMU/2-2 class/datamining/0924/munging with R(0924).R",
+    "project_path" : "0924/munging with R(0924).R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

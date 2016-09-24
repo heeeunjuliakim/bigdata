@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "install.packages(\"stringr\")\ninstall.packages(c('pbdZMQ', 'repr', 'devtools'))  # repr is already on CRAN\ndevtools::install_github('IRkernel/IRkernel',force=T)\nIRkernel::installspec(name = 'ir32', displayname = 'R 3.2')\ninstall.packages(\"Cairo\")\n\n\nsummary(chickwts)\n",
+    "created" : 1472859270867.000,
+    "dirty" : true,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "1662386953",
+    "id" : "BA36D9DF",
+    "lastKnownWriteTime" : 7226435094589303907,
+    "last_content_update" : 1474681113261,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

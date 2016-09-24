@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "\ndata <- read.csv(\"open_closed.csv\")\nsummary(data)\n\nlibrary(psych)\npairs.panels(data)\n",
+    "created" : 1474677670220.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3526279096",
+    "id" : "2434AD02",
+    "lastKnownWriteTime" : 1474680572,
+    "last_content_update" : 1474680572953,
+    "path" : "~/KMU/2-2 class/다변량통계분석/lecture3(PCA).R",
+    "project_path" : "lecture3(PCA).R",
+    "properties" : {
+        "tempName" : "Untitled2"
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
